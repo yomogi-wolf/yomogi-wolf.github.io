@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width,initial-scale=0.5">
+    <title>Title</title>
+</head>
+<style>
+    body {
+        font-family: "M PLUS 1",serif;
+    }
+    .graphContainer {
+        display: grid;
+        grid-template-rows: 100px max(33vw, 300px);
+        grid-template-columns: 1fr;
+        margin: 5vw;
+    }
+    .graphContainer > * {
+        margin: 3px;
+        padding: 10px;
+    }
+    .graph {
+        grid-row: 0.2;
+        width: 90vw;
+    }
+    .title {
+        font-weight: 700;
+        color: #2f2f2f;
+        font-size: 30px;
+        line-height: 30px;
+    }
+    .title::before {
+        content: "■";
+    }
+    .sectionTitle {
+        font-weight: 700;
+        color: #2f2f2f;
+        font-size: 35px;
+        line-height: 30px;
+        margin: 100px 5vw 20px 5vw;
+    }
+    .sectionDescription {
+        font-weight: 400;
+        color: #7c7c7c;
+        font-size: 16px;
+        line-height: 17px;
+        margin: 20px 5vw 20px 6vw;
+        padding: 0.15em 0 0.25em 0.5em;
+        border-left: #7C7C7CFF 3px solid;
+    }
+</style>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+    Chart.register(ChartDataLabels);
+    function insertTitle(title) {
+        let titleElement = document.createElement("h1");
+        titleElement.classList.add("sectionTitle");
+        titleElement.textContent = title;
+        document.body.appendChild(titleElement);
+    }
+    function insertDescription(description) {
+        let descriptionElement = document.createElement("p");
+        descriptionElement.classList.add("sectionDescription");
+        descriptionElement.textContent = description;
+        document.body.appendChild(descriptionElement);
+    }
+    function insertGraph(title, value) {
+        let containerElement = document.createElement("div");
+        containerElement.classList.add("graphContainer")
+        document.body.appendChild(containerElement);
+        let titleElement = document.createElement("p");
+        titleElement.classList.add("title");
+        titleElement.textContent = title;
+        containerElement.appendChild(titleElement);
+        let graphDivElement = document.createElement("div");
+        graphDivElement.classList.add("graph");
+        containerElement.appendChild(graphDivElement);
+        let canvasElement = document.createElement("canvas");
+        graphDivElement.appendChild(canvasElement);
+        let colorSplitMargin = 7 / Object.values(value).length | 0;
+        new Chart(canvasElement, {
+            type: "pie",
+            data: {
+                labels: Object.keys(value).map(v => v.match(/.{1,10}/g)),
+                datasets: [{
+                    label: title,
+                    data: Object.values(value),
+                    backgroundColor: [
+                        [1, "rgb(220,83,70)"],
+                        [2, "rgb(220,173,70)"],
+                        [3, "rgb(153,220,70)"],
+                        [4, "rgb(70,220,197)"],
+                        [5, "rgb(70,95,220)"],
+                        [6, "rgb(147,70,220)"],
+                        [7, "rgb(220,70,168)"],
+                    ].filter(v => v[0]%colorSplitMargin === (colorSplitMargin === 1 ? 0 : 1)).map(v => v[1]),
+                    hoverOffset: 1,
+                }],
+                animation: {
+                    animateRotate: true
+                },
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: "right",
+                        labels: {
+                            boxWidth: 15,
+                            boxHeight: 15,
+                            font: {
+                                size: 20,
+                            }
+                        },
+                    },
+                    datalabels: {
+                        color: "#ffffff",
+                        font: {
+                            size: 15
+                        },
+                        formatter: v => v === 0 ? "" : v.toString() + " (" + Math.round(v / Object.values(value).reduce((s, e) => s + e) * 100).toString() + "%)"
+                    }
+                },
+                aspectRatio: 2
+            }
+        });
+    }
+    insertTitle("人狼の開催時間、開催頻度");
+    insertDescription("今までのイベントは、一週間に1～2回程度、より多くの人の参加が見込める金曜日、土曜日、または祝日前日の21:00～22:00頃から開始してきました。");
+    insertGraph("この開催頻度(週に1～2回)はどうですか", {"少なすぎる": 2, "少し少ない": 3, "ちょうどよい": 6, "少し多い": 0, "多すぎる": 0});
+    insertGraph("この開催時刻(21～22時頃)はどうですか", {"少なすぎる": 0, "少し少ない": 1, "ちょうどよい": 7, "少し多い": 3, "多すぎる": 0});
+    insertTitle("人狼の開催予告");
+    insertDescription("今までのイベントでは、人数過小で開催できないことの無いよう、イベント当日に何人程度参加できるかを見積もってイベントの開催を予告してきました。");
+    insertGraph("イベント当日の開催予告についてどう思いますか", {"現行のままでよい":9,"人数過小で開催できなくてもよいのでもっと早くに予告してほしい":2});
+    insertGraph("一つ前の質問で「人数過小で開催できなくてもよいのでもっと早くに予告してほしい」と回答した方にお尋ねします。具体的に、いつほど前までに予告すればよいと思いますか", {"3日前～1週間前":1,"当日の朝":1});
+    insertTitle("人狼・銃撃戦の終了");
+    insertDescription("今までのイベントでは、人数過小でできなくなるかアンケートで終了が多数になるまで人狼を行ってきました。");
+    insertGraph("人狼イベントの終了(二次会の終了ではない)時間を定めたほうがよいと思いますか", {"思わない  (現行方式)":7,"思う":4});
+    insertGraph("一つ前の質問で「思う」と回答した方にお尋ねします。終了時間は開始時間の何時間後がよいと思いますか", {"3時間後":2,"1時間後":1,"2時間後":1});
+    insertTitle("マイクラ人狼、銃撃戦の割合とその予告");
+    insertDescription("今までのイベントでは、マイクラ人狼を行うか銃撃戦を行うかを、その都度参加者にアンケートを取り決めてきました。");
+    insertGraph("マイクラ人狼と銃撃戦の割合は、(試合回数ではなく)試合時間で考えてどれくらいがよいですか", {"人狼1:銃撃戦1":4,"人狼3:銃撃戦1":2,"人狼5:銃撃戦1":2,"人狼2:銃撃戦1":2,"人狼1:銃撃戦2":1});
+    insertGraph("マイクラ人狼と銃撃戦は、同日に開催したほうがよいと思いますか", {"同日にマイクラ人狼と銃撃戦を両方開催":9,"マイクラ人狼と銃撃戦は別日に開催":2});
+    insertGraph("マイクラ人狼と銃撃戦のどっちを行うかは、どうやって決めるのがよいと思いますか", {"イベント中にその都度アンケートを取って決定する(現行方式)":6,"イベント開始時にアンケートを取ってスケジュールを決める":3,"あらかじめ主催者がスケジュールを決める":2});
+    insertTitle("銃撃戦のルール");
+    insertGraph("初期の銃撃戦から参加してきた方にお尋ねします。銃撃戦のルールは、どれがよいですか", {"Ticket戦で、攻撃されたらランダムなスポーン地点にテレポートし5秒間透明":6,"トーテムを持たずに試合、非Ticket戦で先に全滅したチームの負け":2,"トーテムを1つ持ち試合、非Ticket戦で先に全滅したチームの負け":1});
+    insertGraph("Ticket戦の銃撃戦に参加したことのある方にお尋ねします。銃撃戦のTicket数は、どちらがよいですか", {"チームに所属している人数  (例えば、一つのチームに5人いたなら、5枚)":5,"チームに所属している人数の2倍  (例えば、一つのチームに5人いたなら、10枚)":3});
+    insertTitle("銃撃戦のステージ");
+    insertDescription("今までの銃撃戦は、不向きなステージ(和風、村、洞窟)は避け、イオン、シルバニアファミリーだけで行ってきました。");
+    insertGraph("和風、村、洞窟ステージでも恒常的に銃撃戦を行ったほうがよいと思いますか", {"思わない":7,"思う":4});
+    insertGraph("イオン、シルバニアファミリーは銃撃戦を行うのに適していると思いますか", {"どちらも適していると思う":5,"イオンのみ適していると思う":3,"シルバニアファミリーのみ適していると思う":3});
+    insertTitle("人狼の配役について");
+    insertDescription("今までの人狼では、比較的以前から参加している方が楽しめるように他のマイクラ人狼には見られない役職や新役職を積極的に採用してきました。");
+    insertGraph("今の配役は、現在の自分目線で複雑ですか", {"ちょうどよい":8,"簡単  (考察の仕方がパターン化されていてつまらない\/ゲームのだいたいの流れが決まってしまっていてつまらない)":2,"複雑  (役職の効果がわからない\/うまく使いこなせない\/複雑すぎて推理できない)":1});
+    insertGraph("今の配役は、新規の方がプレイするには複雑だと思いますか", {"複雑  (数回プレイした程度では慣れれなさそう)":8,"ちょうどよい":2,"簡単":1});
+    insertGraph("現在ある役職の中でいらないと思う役職はありますか  (複数可)", {"保安官":3, "狼憑き":2, "呪われし者":2});
+    insertGraph("現在ある役職の中でもっと出現回数を増やしてほしい役職はありますか   (複数可)", {"死神":2,"怪盗":2,"妖狐":1,"狼憑き":1,"偽善者(三)":1,"人狼":1,"化けの狼":1});
+    insertGraph("現在、人狼の役職は未発表のものを含めて28つあります。これからも人狼の役職を増やすべきだと思いますか  (1ゲームで使用する役職の増減についてではなく、現在ある総役職の増減)", {"増やすべきだと思うが、頻度は減らすべきだと思う":5,"増やすべきだと思う":5,"いくつかを廃止して、減らすべきだと思う":1});
+    insertGraph("配役を変える回数は適切だと思いますか", {"思う":8,"思わない  (もっとたくさん変えるべきだと思う)":3});
+    insertGraph("現在の配役はどちらの陣営が有利になっていると思いますか", {"どちらの有利にもならない、適切な配役だと思う":7,"人狼陣営が有利になっている":2,"市民陣営が有利になっている":2});
+    insertTitle("人狼の配役にかかる意見の聴取");
+    insertDescription("今までの人狼では、ゲームの都度、必要に応じて意見を聞いて配役してきました。この方法は、より多くの人が楽しめる配役にできるというメリットがある一方、VCができる人や発言が多い人の意見が優遇されてしまうことや、試合を始まるまでに時間がかかってしまうことなどが指摘されています。");
+    insertGraph("配役に際して、もっと参加者の意見を聴取すべきだと思いますか", {"意見があればそれを取り入れて配役すべきだと思う(現行方式)":8,"主催者が独断で決めるべきだと思う":1,"逐一アンケートをとって全員の意見を聞くべきだと思う":1,"イベント前に意見を聞く":1});
+    insertTitle("人狼のステージ変更について");
+    insertDescription("少し前の人狼から、ステージは毎ゲームが終了するごとに各ステージからランダムで決めています。");
+    insertGraph("ステージの変更回数についてどう思いますか", {"ちょうどよい":11,"多すぎる":0});
+    insertGraph("ステージの変更方法はどれがよいと思いますか", {"ランダムに決める  (現行方式)":11,"アンケートを取って決める":0,"主催者が独断で決める":0});
+    insertTitle("除外されたステージ");
+    insertDescription("今までの人狼では、参加人数が少ない場合は比較的広いシルバニアファミリーはステージ選択から除外してきました。今後、青鬼も除外する予定です。");
+    insertGraph("人数が少ない場合(おおよそ7人以下)でも、シルバニアファミリー、青鬼マップで人狼を行ったほうがよいと思いますか", {"思わない":6,"思う":5});
+    insertGraph("逆に人数が多い場合、和風マップはステージ選択から除外しています。人数が多い場合(おおよそ10人以上)でも和風マップで人狼を行ったほうがよいと思いますか", {"思わない":7,"思う":4});
+    insertTitle("会議時間");
+    insertDescription("現在、会議の時間は初回の会議か2回目以降の会議かで異なっており、初回の会議の場合は1人当たり20秒、2回目以降の会議では1人当たり10秒分の会議時間が設けられています。");
+    insertGraph("初回の会議時間について教えてください", {"ちょうどよい":6,"長すぎると思う":4,"短すぎると思う":1});
+    insertGraph("2回目以降の会議時間について教えてください", {"ちょうどよい":6,"短すぎると思う":4,"長すぎると思う":1});
+    insertTitle("ゲーム間のインターバル");
+    insertDescription("今までの人狼ゲーム、銃撃戦では、ゲーム終了後に感想や反省を伝える時間(以降、インターバルと呼称)を設けてきました。平均して人狼ゲームでは約30～60秒間、銃撃戦では15～30秒間ほどと思いますが、主催者が毎回話のつき具合を見て次のゲームを開始させているため、試合によって時間は大幅に前後してきました。この方法は一回の試合の感想を伝えきることができるというメリットがある一方、話に参加していないプレイヤーにとっては不要な時間となっています。")
+    insertGraph("人狼ゲーム、銃撃戦のインターバル時間を強制する(試合終了後すぐに、あらかじめ決めておいた時間のカウントダウンを開始する)方法について、どう思いますか", {"よくないと思う  (現行通り、話のつき具合をみて毎回カウントダウンを開始させるべきだと思う)":6,"よいと思う":4,"銃撃戦のみよいと思う":1});
+    insertGraph("人狼ゲームのインターバル時間は何秒ほどが良いと思いますか (現行: 30秒)", {"60":3,"20":3,"30":3,"100":1,"40":1});
+    insertGraph("銃撃戦のインターバル時間は何秒ほどが良いと思いますか (現行: 20秒)", {"20":5,"30":3,"60":1,"50":1,"10":1});
+    insertGraph("人狼ゲーム、銃撃戦中に5分程度の休憩を設けることについてどう思いますか", {"よいと思う":9,"よくないと思う  (トイレなどの用事があれば、その都度\/settingなどを用いて離席するのがよいと思う)":2});
+    insertGraph("一つ前の質問で「よいと思う」と回答した方にお尋ねします。休憩はおおよそ何分に1回設けるとよいと思いますか", {"30分に1回":5,"60分に1回":3,"90分に1回":1});
+    insertTitle("別ゲー・今後の人狼ゲームの展望");
+    insertGraph("人狼ゲームや銃撃戦を行わない、別ゲーだけのイベントを開催することについて、どう思いますか", {"よいと思う":6,"よくないと思う":5});
+    insertGraph("あなたが好きな別ゲーがあれば教えてください (その他の選択肢は集計に含んでいません)", {"God Field":7,"Gartic Phone":4,"ラウンジ(https://loungegame.site/)":2,"よもぎラウンジ":1});
+    insertGraph("人狼イベントは、いつまで続けるのがよいと思いますか", {"人が来なくなるまでずっと":7,"生活サーバーができるまで":3,"あと数か月ほど":1});
+    insertTitle("運営の過激な発言への対応")
+    insertDescription("今までの人狼ゲームでは、メンバーが比較的固定されていることもあり、「ゲームは楽しんでやるもの」という価値観のもと、特にVCでは過激な発言や暴言があっても言われた側が不快感を示さなければ運営は注意や処罰を行ってきませんでした。しかし、表に出さないだけで不快に感じている方もいるかもしれません。");
+    insertGraph("運営が過激な発言を規制することについて、どう思いますか", {"どちらでもよい":6,"現在よりもさらにゆるくしてほしい":2,"してほしくない":2,"是非してほしい":1});
+    insertGraph("運営は、他の鯖民の発言が不快に感じた場合にそれをもっと気軽に報告できる制度を整えるべきだと思いますか", {"思う":9,"思わない":2});
+    insertGraph("新規の方が来た時の対応は、どうするべきだと思いますか", {"運営がロビーでルールについて説明する  (現行方式)":5,"運営と新規の方のゲーム参加をオフにした後に、他の人が人狼を行いながら運営が新規の人に説明する":2,"チュートリアル用の動画を作成する":2,"マップ上で説明する":1,"上記の選択肢から新規の方に選んでもらう":1});
+    insertGraph("今後も人狼ゲームでは新規の方の参加を受け付けるべきだと思いますか", {"思う  (引き続き「よもぎサーバーに参加したことがない人を含め、誰でも参加できます。」の文字をイベント告知に表示する)":11,"思わない  (ホワイトリスト制にして、新規参加者を受け付けない)":0});
+    insertGraph("イベントの主催者によってイベントのクオリティに差があると思いますか  (任意)", {"思わない":8,"思う":2});
+    insertTitle("全体的なイベントの主催方針");
+    insertGraph("イベントの主催方針は、次のうちのどれがよいと思いますか", {"現行通り":6,"もっと鯖民主体のイベントを主催するように心がける":4,"もっと独裁的な(主催者の裁量にゆだねた)イベントを主催するよう心がける":1});
+    insertGraph("全体的に、主催者が参加者の意見を聴取する機会を増やすべきだと思いますか", {"思う":6,"思わない":5});
+    insertGraph("主催者が参加者の意見を聴取する際、どのような方法で行うのがよいと思いますか", {"選択肢を提示したアンケートを行う  (例えば主催者が「1:人狼  2:狙撃戦」とチャットして参加者に回答を求めるなど)":8,"広く意見を募る  (例えば主催者が「人狼か狙撃どっちやりたい？」と聞いて、参加者が自由にチャットやVCで回答する)":3});
+</script>
+</body>
+</html>
