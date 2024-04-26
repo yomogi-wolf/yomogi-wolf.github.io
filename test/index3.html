@@ -1,0 +1,85 @@
+<!--The MIT License (MIT)-->
+
+<!--Copyright (c) Feross Aboukhadijeh-->
+
+<!--Permission is hereby granted, free of charge, to any person obtaining a copy of-->
+<!--this software and associated documentation files (the "Software"), to deal in-->
+<!--the Software without restriction, including without limitation the rights to-->
+<!--use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of-->
+<!--the Software, and to permit persons to whom the Software is furnished to do so,-->
+<!--subject to the following conditions:-->
+
+<!--The above copyright notice and this permission notice shall be included in all-->
+<!--copies or substantial portions of the Software.-->
+
+<!--THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR-->
+<!--IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS-->
+<!--FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR-->
+<!--COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER-->
+<!--IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN-->
+<!--CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.-->
+
+<!DOCTYPE html>
+<html lang="ja">
+<style>
+    #outgoing {
+        width: 600px;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+</style>
+<body>
+<pre id="outgoing"></pre>
+<script src="lib/simplepeer.min.js"></script>
+<form>
+    <textarea id="incoming"></textarea>
+    <button type="submit">submit</button>
+</form>
+<script>
+    // get video/voice stream
+    navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: true
+    }).then(gotMedia).catch(() => {})
+
+    function gotMedia (stream) {
+        var peer1 = new SimplePeer({ initiator: location.hash === '#1', stream: stream })
+
+        peer1.on('stream', stream => {
+            // got remote video stream, now let's show it in a video tag
+            var video = document.querySelector('audio')
+
+            if ('srcObject' in video) {
+                video.srcObject = stream
+            } else {
+                video.src = window.URL.createObjectURL(stream) // for older browsers
+            }
+
+            video.play()
+        })
+
+        peer1.on('error', err => console.log('error', err))
+
+        peer1.on('signal', data => {
+            console.log('SIGNAL', JSON.stringify(data))
+            document.querySelector('#outgoing').textContent = JSON.stringify(data)
+        })
+
+        document.querySelector('form').addEventListener('submit', ev => {
+            ev.preventDefault()
+            peer1.signal(JSON.parse(document.querySelector('#incoming').value))
+        })
+
+        peer1.on('connect', () => {
+            console.log('CONNECT')
+            p.send('whatever' + Math.random())
+        })
+
+        peer1.on('data', data => {
+            console.log('data: ' + data)
+        })
+    }
+</script>
+<audio></audio>
+</body>
+</html>
